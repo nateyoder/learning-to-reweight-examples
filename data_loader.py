@@ -1,31 +1,23 @@
 import torch
-import os
-import random
-from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
-from torchvision.datasets import ImageFolder
 from PIL import Image
-import h5py
 import numpy as np
-import collections
-import numbers
-import math
-import pandas as pd
+
 
 class MNISTImbalanced():
-    def __init__(self, n_items = 5000, classes=[9, 4], proportion=0.9, n_val=5, random_seed=1, mode="train"):
+    def __init__(self, n_items=5000, classes=[9, 4], proportion=0.9, n_val=5, random_seed=1, mode="train"):
         if mode == "train":
-            self.mnist = datasets.MNIST('data',train=True, download=True)
+            self.mnist = datasets.MNIST('data', train=True, download=True)
         else:
-            self.mnist = datasets.MNIST('data',train=False, download=True)
+            self.mnist = datasets.MNIST('data', train=False, download=True)
             proportion = 0.5
             n_val = 0
-        self.transform=transforms.Compose([
-               transforms.Resize([32,32]),
-               transforms.ToTensor(),
-               transforms.Normalize((0.1307,), (0.3081,))
-            ])
+        self.transform = transforms.Compose([
+            transforms.Resize([32, 32]),
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+        ])
         n_class = [0, 0]
         n_class[0] = int(np.floor(n_items*proportion))
         n_class[1] = n_items - n_class[0]
@@ -48,7 +40,7 @@ class MNISTImbalanced():
             tmp_idx = torch.from_numpy(tmp_idx)
             img = data_source[tmp_idx[:n_class[i] - n_val]]
             self.data.append(img)
-            
+
             cl = label_source[tmp_idx[:n_class[i] - n_val]]
             self.labels.append((cl == classes[0]).float())
 
@@ -70,10 +62,6 @@ class MNISTImbalanced():
             self.data_val = torch.cat(self.data_val, dim=0)
             self.labels_val = torch.cat(self.labels_val, dim=0)
 
-
-
-
-
     def __len__(self):
         return self.data.size(0)
 
@@ -85,7 +73,7 @@ class MNISTImbalanced():
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
- 
+
         img, target = self.data[index], self.labels[index]
 
         # doing this so that it is consistent with all other datasets
@@ -95,12 +83,14 @@ class MNISTImbalanced():
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, target
+        return img, target, index
 
-def get_mnist_loader(batch_size, classes=[9, 4], n_items=5000, proportion=0.9, n_val=5, mode='train'):
-    """Build and return data loader."""
+def get_mnist_loader(batch_size, classes=[9, 4], n_items=5000, proportion=0.9, n_val=5, mode='train',
+                     seed=None):
+    """Build and return data train."""
 
-    dataset = MNISTImbalanced(classes=classes, n_items=n_items, proportion=proportion, n_val=n_val,mode=mode)
+    dataset = MNISTImbalanced(classes=classes, n_items=n_items, proportion=proportion, n_val=n_val, mode=mode,
+                              random_seed=seed)
 
     shuffle = False
     if mode == 'train':
