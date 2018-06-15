@@ -42,7 +42,8 @@ def train_lre(hyperparameters, data_loader, val_data, val_labels, test_loader, n
         meta_net.zero_grad()
 
         # Line 6 perform a parameter update
-        grads = torch.autograd.grad(l_f_meta, (meta_net.parameters()), create_graph=True)
+        grads = torch.autograd.grad(l_f_meta, (meta_net.parameters()),
+                                    create_graph=True, retain_graph=False)
         update_params_ny(meta_net, hyperparameters['lr'], source_params=grads)
 
         # Line 8 - 10 2nd forward pass and getting the gradients with respect to epsilon
